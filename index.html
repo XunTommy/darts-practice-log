@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0f1115" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icons/icon-192.png" />
+<title>Darts Practice Log</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#181c23; --panel2:#202631; --text:#eef2f7;
+    --muted:#9aa6b2; --accent:#5da9ff; --good:#55d187; --danger:#ff6b6b;
+    --border:#303846;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);}
+  header{padding:20px 16px 8px;max-width:1000px;margin:auto}
+  h1{margin:0;font-size:25px}
+  .sub{color:var(--muted);margin-top:6px;font-size:14px}
+  .installApp{display:none;margin-top:12px;border:1px solid var(--accent);background:transparent;color:var(--accent);padding:9px 13px;border-radius:10px;font-weight:700;cursor:pointer}
+  main{max-width:1000px;margin:auto;padding:12px 16px 60px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:11px 14px;border-radius:10px;cursor:pointer}
+  .tab.active{background:var(--accent);color:#07111d;border-color:var(--accent);font-weight:700}
+  section{display:none;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px}
+  section.active{display:block}
+  h2{margin-top:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+  input,select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:11px;font-size:16px}
+  .bullBox{display:grid;grid-template-columns:1fr 90px 70px;gap:8px;align-items:end}
+  .bullBtn{height:48px;border:0;border-radius:10px;background:var(--good);color:#07140b;font-size:22px;font-weight:800;cursor:pointer}
+  .bullMinus{height:48px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font-size:20px;font-weight:800;cursor:pointer}
+  .rounds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  .roundCheck{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--panel2);padding:12px 8px;border-radius:9px;font-size:15px}
+  .roundCheck input{width:auto;transform:scale(1.25)}
+  button{font:inherit}
+  .primary,.secondary,.danger,.share{border:0;border-radius:10px;padding:11px 14px;cursor:pointer}
+  .primary{background:var(--accent);color:#07111d;font-weight:700}
+  .secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+  .danger{background:#3a2023;color:#ffd7d7}
+  .share{background:var(--good);color:#07140b;font-weight:800}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .actions button{min-height:44px}
+  .cricketPlay{margin-top:16px}
+  .roundStatus{display:flex;align-items:end;justify-content:space-between;gap:12px;background:#111722;border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+  .roundNow{font-size:30px;font-weight:850;line-height:1}
+  .roundTarget{color:var(--muted);font-size:13px;margin-top:5px}
+  .roundMini{text-align:right;color:var(--muted);font-size:13px}
+  .roundMini b{color:var(--text);font-size:18px}
+  .currentDarts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .currentDart{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:10px}
+  .dartTitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+  .markButtons{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+  .markButtons button{background:#151a22;color:var(--text);border:1px solid var(--border);border-radius:9px;padding:12px 0;cursor:pointer;font-size:18px;font-weight:800;min-height:52px}
+  .markButtons button.sel{background:var(--accent);color:#07111d;border-color:var(--accent)}
+  .cricketMark{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;position:relative}
+  .cricketMark.m0::before{content:"";position:absolute;width:24px;height:3px;background:currentColor;border-radius:2px}
+  .cricketMark.m1::before{content:"";position:absolute;width:3px;height:25px;background:currentColor;transform:rotate(45deg);border-radius:2px}
+  .cricketMark.m2::before,.cricketMark.m2::after,
+  .cricketMark.m3::before,.cricketMark.m3::after{content:"";position:absolute;width:3px;height:25px;background:currentColor;border-radius:2px}
+  .cricketMark.m2::before,.cricketMark.m3::before{transform:rotate(45deg)}
+  .cricketMark.m2::after,.cricketMark.m3::after{transform:rotate(-45deg)}
+  .cricketMark.m3{border:3px solid currentColor;border-radius:50%}
+  .roundTotal{text-align:center;font-size:14px;color:var(--muted);margin-top:12px}
+  .roundTotal b{color:var(--text);font-size:22px}
+  .roundNav{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:14px}
+  .roundNav button{min-height:50px}
+  .summary{margin-top:18px;background:#111722;border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:20px;flex-wrap:wrap}
+  .metric b{display:block;font-size:24px}
+  .metric span{font-size:12px;color:var(--muted)}
+  .history{margin-top:18px;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+  th,td{border-bottom:1px solid var(--border);padding:9px 7px;text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  .note{color:var(--muted);font-size:13px;line-height:1.55}
+  .photoBox{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
+  .photoPreview{display:none;max-width:100%;max-height:260px;border-radius:10px;margin-top:10px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#eef2f7;color:#10151b;padding:10px 14px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:.2s}
+  .toast.show{opacity:1}
+  @media(max-width:620px){
+    header{padding-left:14px;padding-right:14px}
+    main{padding-left:12px;padding-right:12px}
+    section{padding:14px}
+    .bullBox{grid-template-columns:1fr 82px 60px}
+    .bullBtn,.bullMinus{height:52px}
+    .rounds{grid-template-columns:repeat(4,1fr)}
+    .currentDarts{grid-template-columns:1fr}
+    .markButtons{grid-template-columns:repeat(4,1fr)}
+    .markButtons button{padding:14px 0}
+    .roundStatus{align-items:center}
+    .roundNow{font-size:27px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Darts Practice Log</h1>
+  <div class="sub">投げながら記録 → 保存 → 玲奈に共有</div>
+  <button id="installApp" class="installApp" type="button">ホーム画面に追加</button>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="countup">COUNT-UP</button>
+    <button class="tab" data-tab="cricket">CRICKET</button>
+    <button class="tab" data-tab="history">履歴</button>
+  </div>
+
+  <section id="countup" class="active">
+    <h2>COUNT-UP 記録</h2>
+
+    <div class="grid">
+      <div>
+        <label>スコア</label>
+        <input id="cuScore" type="number" min="0" placeholder="例: 455">
+      </div>
+
+      <div>
+        <label>BULL本数</label>
+        <div class="bullBox">
+          <input id="cuBull" type="number" min="0" max="24" value="0" inputmode="numeric">
+          <button class="bullBtn" id="bullPlus" type="button">＋1</button>
+          <button class="bullMinus" id="bullMinus" type="button">−1</button>
+        </div>
+      </div>
+    </div>
+
+    <label style="margin-top:16px">ノーブルラウンド</label>
+    <div class="rounds" id="cuRounds"></div>
+
+    <div class="actions">
+      <button class="primary" id="saveCU">記録する</button>
+      <button class="secondary" id="clearCU">入力をクリア</button>
+    </div>
+
+    <div class="photoBox">
+      <label>結果画面の写真（任意）</label>
+      <input id="cuPhoto" type="file" accept="image/*" capture="environment">
+      <p class="note">
+        今の単体Webページでは写真からの自動スコア認識は未実装。
+        撮影した画像を記録時に端末内へ保存し続ける方式は容量が増えやすいため、現版ではプレビューのみ。
+      </p>
+      <img id="photoPreview" class="photoPreview" alt="結果画面プレビュー">
+    </div>
+  </section>
+
+  <section id="cricket">
+    <h2>CRICKET 1ナンバー練習</h2>
+    <div class="grid">
+      <div>
+        <label>狙うナンバー</label>
+        <select id="targetNum">
+          <option>20</option><option>19</option><option>18</option>
+          <option>17</option><option>16</option><option>15</option><option>BULL</option>
+        </select>
+      </div>
+      <div>
+        <label>ラウンド数</label>
+        <select id="roundCount">
+          <option value="15">15R</option>
+          <option value="20">20R</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="note">今のラウンドだけ入力。別ナンバーへ外れた投球は0。3投入力したら「次のラウンドへ」で進む。</p>
+
+    <div class="cricketPlay">
+      <div class="roundStatus">
+        <div>
+          <div class="roundNow" id="roundNow">R1 / 15</div>
+          <div class="roundTarget" id="roundTarget">20狙い</div>
+        </div>
+        <div class="roundMini">
+          累計 <b id="markTotal">0</b> mark<br>
+          MPR <b id="mpr">0.00</b>
+        </div>
+      </div>
+
+      <div class="currentDarts" id="currentDarts"></div>
+      <div class="roundTotal">このラウンド: <b id="roundMarkTotal">0</b> mark</div>
+
+      <div class="roundNav">
+        <button class="secondary" id="prevRound">← 前のR</button>
+        <button class="primary" id="nextRound">次のRへ →</button>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="metric"><b id="hitDarts">0</b><span>1マーク以上のダーツ</span></div>
+      <div class="metric"><b id="completedRounds">0</b><span>入力済みラウンド</span></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="saveCR">このゲームを記録</button>
+      <button class="secondary" id="clearCR">最初からやり直す</button>
+    </div>
+  </section>
+
+  <section id="history">
+    <h2>練習履歴</h2>
+    <div class="actions" style="margin-top:0">
+      <button class="share" id="shareToday">玲奈に共有</button>
+      <button class="secondary" id="copyToday">共有文をコピー</button>
+      <button class="secondary" id="exportCsv">CSVを書き出す</button>
+      <button class="danger" id="deleteAll">履歴を全削除</button>
+    </div>
+    <p class="note">
+      「玲奈に共有」はAndroidなどでWeb Shareが使える場合は共有画面を開く。
+      未対応環境では共有文をクリップボードへコピーする。
+    </p>
+    <div class="history">
+      <table>
+        <thead><tr><th>日時</th><th>種別</th><th>内容</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const KEY = "dartsPracticeLog_v2";
+
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),1600);
+}
+function loadLogs(){
+  try{
+    const newer=JSON.parse(localStorage.getItem(KEY)||"null");
+    if(newer) return newer;
+    return JSON.parse(localStorage.getItem("dartsPracticeLog_v1")||"[]");
+  }catch{return []}
+}
+function saveLogs(v){ localStorage.setItem(KEY, JSON.stringify(v)); }
+
+$$(".tab").forEach(b=>b.onclick=()=>{
+  $$(".tab").forEach(x=>x.classList.remove("active"));
+  $$("section").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  $("#"+b.dataset.tab).classList.add("active");
+  if(b.dataset.tab==="history") renderHistory();
+});
+
+for(let i=1;i<=8;i++){
+  const d=document.createElement("label");
+  d.className="roundCheck";
+  d.innerHTML=`<input type="checkbox" value="${i}"> R${i}`;
+  $("#cuRounds").appendChild(d);
+}
+
+$("#bullPlus").onclick=()=>{
+  $("#cuBull").value=Math.min(24, Number($("#cuBull").value||0)+1);
+};
+$("#bullMinus").onclick=()=>{
+  $("#cuBull").value=Math.max(0, Number($("#cuBull").value||0)-1);
+};
+
+function clearCU(){
+  $("#cuScore").value="";
+  $("#cuBull").value="0";
+  $$("#cuRounds input").forEach(x=>x.checked=false);
+  $("#cuPhoto").value="";
+  $("#photoPreview").src="";
+  $("#photoPreview").style.display="none";
+}
+
+$("#saveCU").onclick=()=>{
+  if($("#cuScore").value===""){alert("スコアを入力してね");return;}
+  const score=Number($("#cuScore").value);
+  const bull=Number($("#cuBull").value||0);
+  const noBull=$$("#cuRounds input:checked").map(x=>Number(x.value));
+
+  const logs=loadLogs();
+  logs.unshift({
+    ts:new Date().toISOString(),
+    type:"COUNT-UP",
+    score,bull,noBull
+  });
+  saveLogs(logs);
+
+  clearCU(); // 記録したら即リセット
+  toast("COUNT-UPを記録してリセットしたよ");
+};
+
+$("#clearCU").onclick=clearCU;
+
+$("#cuPhoto").onchange=(e)=>{
+  const f=e.target.files?.[0];
+  if(!f) return;
+  const url=URL.createObjectURL(f);
+  $("#photoPreview").src=url;
+  $("#photoPreview").style.display="block";
+};
+
+let cricket = [];
+let currentRound = 0;
+
+function newCricketSession(){
+  const rounds=Number($("#roundCount").value);
+  cricket=Array.from({length:rounds},()=>[null,null,null]);
+  currentRound=0;
+  renderCurrentRound();
+}
+
+function renderCurrentRound(){
+  const rounds=cricket.length;
+  currentRound=Math.max(0,Math.min(currentRound,rounds-1));
+
+  $("#roundNow").textContent=`R${currentRound+1} / ${rounds}`;
+  $("#roundTarget").textContent=`${$("#targetNum").value}狙い`;
+
+  const wrap=$("#currentDarts");
+  wrap.innerHTML="";
+
+  for(let dart=0; dart<3; dart++){
+    const box=document.createElement("div");
+    box.className="currentDart";
+
+    const title=document.createElement("div");
+    title.className="dartTitle";
+    title.textContent=`${dart+1}投目`;
+    box.appendChild(title);
+
+    const buttons=document.createElement("div");
+    buttons.className="markButtons";
+
+    [0,1,2,3].forEach(mark=>{
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.title=`${mark}マーク`;
+      btn.setAttribute("aria-label",`${mark}マーク`);
+      const markIcon=document.createElement("span");
+      markIcon.className=`cricketMark m${mark}`;
+      btn.appendChild(markIcon);
+
+      if(cricket[currentRound][dart]===mark) btn.classList.add("sel");
+
+      btn.onclick=()=>{
+        cricket[currentRound][dart]=mark;
+        renderCurrentRound();
+      };
+
+      buttons.appendChild(btn);
+    });
+
+    box.appendChild(buttons);
+    wrap.appendChild(box);
+  }
+
+  updateCricket();
+
+  $("#prevRound").disabled=currentRound===0;
+  $("#prevRound").style.opacity=currentRound===0?".45":"1";
+
+  if(currentRound===rounds-1){
+    $("#nextRound").textContent="15R入力完了";
+  }else{
+    $("#nextRound").textContent="次のRへ →";
+  }
+}
+
+function updateCricket(){
+  const enteredRounds=cricket.filter(r=>r.every(v=>v!==null));
+  const enteredValues=cricket.flat().filter(v=>v!==null);
+  const total=enteredValues.reduce((a,b)=>a+b,0);
+  const hit=enteredValues.filter(x=>x>0).length;
+  const roundTotal=cricket[currentRound]
+    .filter(v=>v!==null)
+    .reduce((a,b)=>a+b,0);
+
+  $("#markTotal").textContent=total;
+  $("#mpr").textContent=enteredRounds.length ? (total/enteredRounds.length).toFixed(2) : "0.00";
+  $("#hitDarts").textContent=hit;
+  $("#completedRounds").textContent=enteredRounds.length;
+  $("#roundMarkTotal").textContent=roundTotal;
+}
+
+$("#targetNum").onchange=()=>renderCurrentRound();
+$("#roundCount").onchange=newCricketSession;
+$("#clearCR").onclick=()=>{
+  if(confirm("このクリケット練習の入力を最初からやり直す？")){
+    newCricketSession();
+  }
+};
+
+$("#prevRound").onclick=()=>{
+  if(currentRound>0){
+    currentRound--;
+    renderCurrentRound();
+  }
+};
+
+$("#nextRound").onclick=()=>{
+  if(!cricket[currentRound].every(v=>v!==null)){
+    toast("3投分を入力してね");
+    return;
+  }
+
+  if(currentRound<cricket.length-1){
+    currentRound++;
+    renderCurrentRound();
+  }else{
+    toast("全ラウンド入力済み。記録できるよ");
+  }
+};
+
+$("#saveCR").onclick=()=>{
+  const completed=cricket.filter(r=>r.every(v=>v!==null)).length;
+  if(completed!==cricket.length){
+    alert(`まだ ${cricket.length-completed} ラウンド未入力だよ`);
+    return;
+  }
+
+  const total=cricket.flat().reduce((a,b)=>a+b,0);
+  const hit=cricket.flat().filter(x=>x>0).length;
+  const rounds=cricket.length;
+
+  const logs=loadLogs();
+  logs.unshift({
+    ts:new Date().toISOString(),
+    type:"CRICKET",
+    target:$("#targetNum").value,
+    rounds,
+    marks:total,
+    mpr:Number((total/rounds).toFixed(2)),
+    hitDarts:hit,
+    darts:cricket
+  });
+  saveLogs(logs);
+
+  newCricketSession();
+  toast("CRICKETを記録してR1へ戻したよ");
+};
+
+function fmtDate(iso){
+  return new Intl.DateTimeFormat("ja-JP",{
+    year:"numeric",month:"2-digit",day:"2-digit",
+    hour:"2-digit",minute:"2-digit"
+  }).format(new Date(iso));
+}
+function localDayKey(date){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+function todayLogs(){
+  const today=localDayKey(new Date());
+  return loadLogs().filter(x=>localDayKey(new Date(x.ts))===today).reverse();
+}
+function makeShareText(){
+  const items=todayLogs();
+  const date=new Intl.DateTimeFormat("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+
+  if(!items.length) return `${date} ダーツ練習記録\n記録なし`;
+
+  const cu=items.filter(x=>x.type==="COUNT-UP");
+  const cr=items.filter(x=>x.type==="CRICKET");
+
+  let lines=[`${date} ダーツ練習記録`];
+
+  if(cu.length){
+    lines.push("");
+    lines.push("【毎投セットし直し COUNT-UP】");
+    cu.forEach((x,i)=>{
+      const rounds=x.noBull?.length ? x.noBull.join("") : "-";
+      lines.push(`${i+1}. ${x.score}/${x.bull}/${rounds}`);
+    });
+
+    const avgScore=cu.reduce((s,x)=>s+x.score,0)/cu.length;
+    const avgBull=cu.reduce((s,x)=>s+x.bull,0)/cu.length;
+    const avgNo=cu.reduce((s,x)=>s+(x.noBull?.length||0),0)/cu.length;
+    lines.push(`平均: ${avgScore.toFixed(1)}点 / BULL ${avgBull.toFixed(1)}本 / ノーブル ${avgNo.toFixed(1)}R`);
+  }
+
+  if(cr.length){
+    lines.push("");
+    lines.push("【CRICKET 1ナンバー】");
+    cr.forEach((x,i)=>lines.push(`${i+1}. ${x.target}/${x.marks} (${x.mpr.toFixed(2)} MPR)`));
+
+    const groups={};
+    cr.forEach(x=>{
+      if(!groups[x.target]) groups[x.target]=[];
+      groups[x.target].push(x);
+    });
+    Object.entries(groups).forEach(([target,arr])=>{
+      const totalMarks=arr.reduce((s,x)=>s+x.marks,0);
+      const totalRounds=arr.reduce((s,x)=>s+x.rounds,0);
+      lines.push(`${target}平均: ${(totalMarks/totalRounds).toFixed(2)} MPR`);
+    });
+  }
+
+  return lines.join("\n");
+}
+
+async function copyShare(){
+  const text=makeShareText();
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("共有文をコピーしたよ");
+  }catch{
+    const ta=document.createElement("textarea");
+    ta.value=text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+    toast("共有文をコピーしたよ");
+  }
+}
+
+$("#copyToday").onclick=copyShare;
+
+$("#shareToday").onclick=async()=>{
+  const text=makeShareText();
+  if(navigator.share){
+    try{
+      await navigator.share({
+        title:"ダーツ練習記録",
+        text
+      });
+    }catch(e){
+      if(e.name!=="AbortError") await copyShare();
+    }
+  }else{
+    await copyShare();
+  }
+};
+
+function renderHistory(){
+  const body=$("#historyBody");
+  body.innerHTML="";
+
+  const logs=loadLogs();
+  if(!logs.length){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td colspan="3" style="color:var(--muted)">まだ記録なし</td>`;
+    body.appendChild(tr);
+    return;
+  }
+
+  logs.forEach(x=>{
+    const tr=document.createElement("tr");
+    let detail="";
+
+    if(x.type==="COUNT-UP"){
+      detail=`${x.score}点 / BULL ${x.bull}本 / ノーブルR ${x.noBull?.length?x.noBull.join(","):"なし"}`;
+    }else{
+      detail=`${x.target}狙い / ${x.marks}マーク / ${Number(x.mpr).toFixed(2)} MPR / ${x.rounds}R`;
+    }
+
+    tr.innerHTML=`<td>${fmtDate(x.ts)}</td><td>${x.type}</td><td>${detail}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+$("#deleteAll").onclick=()=>{
+  if(confirm("保存した履歴をすべて削除する？")){
+    localStorage.removeItem(KEY);
+    localStorage.removeItem("dartsPracticeLog_v1");
+    renderHistory();
+    toast("履歴を削除したよ");
+  }
+};
+
+$("#exportCsv").onclick=()=>{
+  const rows=[["日時","種別","内容"]];
+
+  loadLogs().forEach(x=>{
+    let detail=x.type==="COUNT-UP"
+      ? `${x.score}点 / BULL ${x.bull}本 / ノーブルR ${(x.noBull||[]).join(",")}`
+      : `${x.target}狙い / ${x.marks}マーク / ${Number(x.mpr).toFixed(2)} MPR / ${x.rounds}R`;
+
+    rows.push([fmtDate(x.ts),x.type,detail]);
+  });
+
+  const esc=v=>`"${String(v).replaceAll('"','""')}"`;
+  const csv="\uFEFF"+rows.map(r=>r.map(esc).join(",")).join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="darts_practice_log.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+newCricketSession();
+
+// PWA: install / offline support
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  $("#installApp").style.display = "inline-block";
+});
+
+$("#installApp").onclick = async () => {
+  if (!deferredInstallPrompt) {
+    toast("Chromeのメニューから「アプリをインストール」も使えるよ");
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  $("#installApp").style.display = "none";
+};
+
+window.addEventListener("appinstalled", () => {
+  $("#installApp").style.display = "none";
+  toast("ホーム画面に追加したよ");
+});
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(console.error);
+  });
+}
+
+</script>
+</body>
+</html>
