@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Darts Practice Log",
   "short_name": "Darts Log",
-  "description": "COUNT-UPとクリケットの練習記録・MPR集計・共有用アプリ",
+  "description": "ダーツ練習記録アプリ",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",

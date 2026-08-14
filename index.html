@@ -18,7 +18,7 @@
   header{padding:20px 16px 8px;max-width:1000px;margin:auto}
   h1{margin:0;font-size:25px}
   .sub{color:var(--muted);margin-top:6px;font-size:14px}
-  .installApp{display:none;margin-top:12px;border:1px solid var(--accent);background:transparent;color:var(--accent);padding:9px 13px;border-radius:10px;font-weight:700;cursor:pointer}
+  .installApp{display:none;margin-top:10px;border:1px solid var(--accent);background:transparent;color:var(--accent);padding:9px 13px;border-radius:10px;font-weight:700;cursor:pointer}
   main{max-width:1000px;margin:auto;padding:12px 16px 60px}
   .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .tab{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:11px 14px;border-radius:10px;cursor:pointer}
@@ -42,6 +42,12 @@
   .danger{background:#3a2023;color:#ffd7d7}
   .share{background:var(--good);color:#07140b;font-weight:800}
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .historyTools{display:flex;gap:9px;align-items:center;margin-top:0}
+  .iconBtn{width:46px;height:46px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:var(--panel2);color:var(--text);border:1px solid var(--border);cursor:pointer}
+  .iconBtn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .iconBtn.shareIcon{color:var(--good)}
+  .iconBtn:active{transform:translateY(1px)}
+  .deleteTextBtn{height:46px;padding:0 14px;border:1px solid #5a2c31;border-radius:11px;background:#3a2023;color:#ffd7d7;font-weight:700;cursor:pointer}
   .actions button{min-height:44px}
   .cricketPlay{margin-top:16px}
   .roundStatus{display:flex;align-items:end;justify-content:space-between;gap:12px;background:#111722;border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
@@ -97,7 +103,6 @@
 <body>
 <header>
   <h1>Darts Practice Log</h1>
-  <div class="sub">投げながら記録 → 保存 → 玲奈に共有</div>
   <button id="installApp" class="installApp" type="button">ホーム画面に追加</button>
 </header>
 
@@ -201,16 +206,34 @@
 
   <section id="history">
     <h2>練習履歴</h2>
-    <div class="actions" style="margin-top:0">
-      <button class="share" id="shareToday">玲奈に共有</button>
-      <button class="secondary" id="copyToday">共有文をコピー</button>
-      <button class="secondary" id="exportCsv">CSVを書き出す</button>
-      <button class="danger" id="deleteAll">履歴を全削除</button>
+    <div class="historyTools">
+      <button class="iconBtn shareIcon" id="shareToday" type="button" title="共有" aria-label="共有">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <path d="M8.6 10.6 15.4 6.5"></path>
+          <path d="m8.6 13.4 6.8 4.1"></path>
+        </svg>
+      </button>
+
+      <button class="iconBtn" id="copyToday" type="button" title="共有文をコピー" aria-label="共有文をコピー">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+
+      <button class="iconBtn" id="exportCsv" type="button" title="CSVを書き出す" aria-label="CSVを書き出す">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v12"></path>
+          <path d="m7 10 5 5 5-5"></path>
+          <path d="M5 21h14"></path>
+        </svg>
+      </button>
+
+      <button class="deleteTextBtn" id="deleteAll" type="button">全削除</button>
     </div>
-    <p class="note">
-      「玲奈に共有」はAndroidなどでWeb Shareが使える場合は共有画面を開く。
-      未対応環境では共有文をクリップボードへコピーする。
-    </p>
     <div class="history">
       <table>
         <thead><tr><th>日時</th><th>種別</th><th>内容</th></tr></thead>
@@ -587,7 +610,7 @@ $("#exportCsv").onclick=()=>{
 
 newCricketSession();
 
-// PWA: install / offline support
+// PWA install / offline support
 let deferredInstallPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -597,10 +620,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 $("#installApp").onclick = async () => {
-  if (!deferredInstallPrompt) {
-    toast("Chromeのメニューから「アプリをインストール」も使えるよ");
-    return;
-  }
+  if (!deferredInstallPrompt) return;
   deferredInstallPrompt.prompt();
   await deferredInstallPrompt.userChoice;
   deferredInstallPrompt = null;

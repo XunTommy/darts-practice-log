@@ -1,20 +1,14 @@
-Darts Practice Log - PWA版
+Darts Practice Log PWA v2
 
-このフォルダ一式を HTTPS で公開すると、Android Chrome からホーム画面へアプリとして追加できます。
+GitHubの既存 darts-practice-log リポジトリへ、このフォルダの中身を上書きアップロードしてください。
 
-含まれるファイル:
-- index.html
-- manifest.webmanifest
-- sw.js
-- icons/icon-192.png
-- icons/icon-512.png
+変更点:
+- タイトル下の説明文を削除
+- 履歴タブの説明文を削除
+- 共有を標準的な共有アイコンに変更
+- 共有文コピーをコピーアイコンに変更
+- CSV出力をエクスポートアイコンに変更
+- 履歴削除を「全削除」に短縮
+- Service Workerキャッシュをv2へ更新
 
-公開後:
-1. AndroidのChromeで公開URLを開く
-2. 画面上の「ホーム画面に追加」を押す
-   またはChromeの︙メニュー →「アプリをインストール / ホーム画面に追加」
-3. 以後はホーム画面のアイコンから起動
-4. 初回読み込み後は主要ファイルをキャッシュするためオフラインでも使用可能
-
-注意:
-ブラウザのlocalStorageを使っているため、公開URLが変わると別の保存領域になります。
+localStorageの保存キーは変更していないため、同じGitHub Pages URLなら既存履歴は維持されます。
