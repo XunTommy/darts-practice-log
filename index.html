@@ -290,6 +290,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const KEY = "dartsPracticeLog_v2";
 const ANALYSIS_CHAT_URL_KEY = "dartsPracticeAnalysisChatUrl_v1";
+const DEFAULT_ANALYSIS_CHAT_URL = "https://chatgpt.com/g/g-p-6a7c1c5285f88191833678d7e4694fd3/c/6a8178b5-e358-83ee-aed2-3e16db80db29";
 
 function toast(msg){
   const t=$("#toast");
@@ -297,8 +298,14 @@ function toast(msg){
   t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),1600);
 }
-function haptic(ms=12){
-  try{ if(navigator.vibrate) navigator.vibrate(ms); }catch{}
+function haptic(ms=50){
+  try{
+    if(typeof navigator.vibrate === 'function'){
+      // Short but clearly perceptible pulse. Returns false on unsupported/blocked devices.
+      return navigator.vibrate(Math.max(40, ms));
+    }
+  }catch{}
+  return false;
 }
 function loadLogs(){
   try{
@@ -401,7 +408,7 @@ function clearCU(){
 }
 
 $('#saveCU').onclick=()=>{
-  haptic(20);
+  haptic(70);
   if($('#cuScore').value===''){alert('Enter a score first.');return;}
   const score=Number($('#cuScore').value);
   const bull=Number($('#cuBull').value||0);
@@ -545,7 +552,7 @@ async function scanCountUpPhoto(file){
     if(count===8){
       status.className='scanStatus show good';
       $('#ocrStatusText').textContent='8/8 rounds read. Check the scores, then record the game.';
-      haptic(20);
+      haptic(70);
     }else{
       status.className='scanStatus show warn';
       $('#ocrStatusText').textContent=`${count}/8 rounds read. Fill or correct the highlighted fields.`;
@@ -666,7 +673,7 @@ function clearCricket(){
 
 $('#clearCR').onclick=()=>{
   haptic();
-  if(confirm('Clear this Cricket game and start over?')) clearCricket();
+  clearCricket();
 };
 
 $('#prevRound').onclick=()=>{
@@ -826,8 +833,8 @@ function configureAnalysisChat(){
 async function sendToAnalysisChat(){
   haptic();
   let chatUrl=localStorage.getItem(ANALYSIS_CHAT_URL_KEY);
-  if(!isValidAnalysisChatUrl(chatUrl||'')) chatUrl=configureAnalysisChat();
-  if(!chatUrl) return;
+  // Use the fixed Darts analysis chat by default. Long-press can still override it on this device.
+  if(!isValidAnalysisChatUrl(chatUrl||'')) chatUrl=DEFAULT_ANALYSIS_CHAT_URL;
 
   const text=makeShareText();
   // Start clipboard access while the tap still counts as a user gesture, then
@@ -854,7 +861,7 @@ shareBtn.addEventListener('pointerdown',()=>{
   shareLongPressed=false;
   shareHoldTimer=setTimeout(()=>{
     shareLongPressed=true;
-    haptic(30);
+    haptic(80);
     configureAnalysisChat();
   },700);
 });
@@ -1012,7 +1019,7 @@ $('#saveEdit').onclick=()=>{
   }
 
   saveLogs(logs);
-  haptic(20);
+  haptic(70);
   closeEditRecord();
   renderHistory();
   toast('Record updated.');
