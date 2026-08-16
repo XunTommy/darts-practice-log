@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Haptic Test</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#111;color:#eee;max-width:520px;margin:0 auto;padding:24px}button{width:100%;font-size:22px;font-weight:800;padding:22px;border:0;border-radius:14px;margin:18px 0;background:#4ade80;color:#06130a}pre{white-space:pre-wrap;background:#1e1e1e;padding:14px;border-radius:10px;color:#ddd}</style>
+</head>
+<body>
+<h1>Haptic Test</h1>
+<p>This page tests the browser Vibration API directly.</p>
+<button id="test">TEST VIBRATION</button>
+<pre id="status"></pre>
+<script>
+const status=document.querySelector('#status');
+function update(extra=''){
+  status.textContent=[
+    `navigator.vibrate: ${typeof navigator.vibrate === 'function' ? 'available' : 'unavailable'}`,
+    `visibility: ${document.visibilityState}`,
+    `userAgent: ${navigator.userAgent}`,
+    extra
+  ].filter(Boolean).join('\n');
+}
+update();
+document.querySelector('#test').addEventListener('pointerdown',()=>{
+  let result='';
+  try{
+    result=`vibrate() returned: ${navigator.vibrate?.([200,100,200])}`;
+  }catch(e){ result=`error: ${e}`; }
+  update(result);
+});
+</script>
+</body>
+</html>
