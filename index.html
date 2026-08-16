@@ -245,7 +245,7 @@
   <section id="history">
     <h2>HISTORY</h2>
     <div class="iconActions">
-      <button class="iconBtn shareIcon" id="shareToday" title="Send to Analysis Chat (long press to change destination)" aria-label="Send to Analysis Chat">
+      <button class="iconBtn shareIcon" id="shareToday" title="Send to Analysis Chat" aria-label="Send to Analysis Chat">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13a5 5 0 0 1-5 5H8l-5 3V7a4 4 0 0 1 4-4h6"></path><path d="M15 3h6v6"></path><path d="m21 3-8 8"></path></svg>
       </button>
       <button class="iconBtn" id="copyToday" title="Copy" aria-label="Copy">
@@ -668,7 +668,6 @@ function clearCricket(){
   cricket=Array.from({length:Number($('#roundCount').value)},()=>[null,null,null]);
   currentRound=0;
   renderCurrentRound();
-  toast('CRICKET cleared.');
 }
 
 $('#clearCR').onclick=()=>{
@@ -830,49 +829,41 @@ function configureAnalysisChat(){
   return trimmed;
 }
 
+function androidChromeIntent(url){
+  try{
+    const u=new URL(url);
+    const target=`${u.host}${u.pathname}${u.search}${u.hash}`;
+    return `intent://${target}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+  }catch{
+    return url;
+  }
+}
+
 async function sendToAnalysisChat(){
   haptic();
-  let chatUrl=localStorage.getItem(ANALYSIS_CHAT_URL_KEY);
-  // Use the fixed Darts analysis chat by default. Long-press can still override it on this device.
-  if(!isValidAnalysisChatUrl(chatUrl||'')) chatUrl=DEFAULT_ANALYSIS_CHAT_URL;
+  const chatUrl=DEFAULT_ANALYSIS_CHAT_URL;
 
   const text=makeShareText();
-  // Start clipboard access while the tap still counts as a user gesture, then
-  // open ChatGPT in a separate window/tab. The result stays on the clipboard
-  // ready to paste into the fixed analysis conversation.
   const copyPromise=copyText(text,{showToast:false});
-  const opened=window.open(chatUrl,'_blank');
-  if(opened) try{ opened.opener=null; }catch{}
+
+  // On Android, a normal https link can be intercepted by the native ChatGPT app.
+  // Force this specific conversation URL through Chrome so the full /c/... path is kept.
+  if(/Android/i.test(navigator.userAgent)){
+    window.location.href=androidChromeIntent(chatUrl);
+  }else{
+    const opened=window.open(chatUrl,'_blank','noopener,noreferrer');
+    if(!opened) window.location.href=chatUrl;
+  }
+
   try{
     await copyPromise;
-    toast(opened ? 'Copied — paste in Analysis Chat.' : 'Copied — open Analysis Chat and paste.');
-  }catch{
-    toast('Open Analysis Chat and paste the copied result.');
-  }
-  if(!opened) window.location.href=chatUrl;
+  }catch{}
 }
 
 $('#copyToday').onclick=copyShare;
 
 const shareBtn=$('#shareToday');
-let shareHoldTimer=null;
-let shareLongPressed=false;
-shareBtn.addEventListener('pointerdown',()=>{
-  shareLongPressed=false;
-  shareHoldTimer=setTimeout(()=>{
-    shareLongPressed=true;
-    haptic(80);
-    configureAnalysisChat();
-  },700);
-});
-['pointerup','pointercancel','pointerleave'].forEach(type=>shareBtn.addEventListener(type,()=>{
-  if(shareHoldTimer){ clearTimeout(shareHoldTimer); shareHoldTimer=null; }
-}));
-shareBtn.addEventListener('contextmenu',e=>e.preventDefault());
-shareBtn.onclick=()=>{
-  if(shareLongPressed){ shareLongPressed=false; return; }
-  sendToAnalysisChat();
-};
+shareBtn.onclick=sendToAnalysisChat;
 
 function renderHistory(){
   const body=$('#historyBody');
