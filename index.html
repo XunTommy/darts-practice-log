@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#0f1115" />
+<link rel="manifest" href="./manifest.webmanifest" />
 <title>Darts Practice Log</title>
 <style>
   :root{
@@ -86,8 +87,37 @@
   th{color:var(--muted);font-weight:600}
   .note{color:var(--muted);font-size:13px;line-height:1.55}
   .photoBox{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
-  .photoPreview{display:none;max-width:100%;max-height:260px;border-radius:10px;margin-top:10px}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#eef2f7;color:#10151b;padding:10px 14px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:20}
+  .photoPreview{display:none;max-width:100%;max-height:300px;border-radius:10px;margin-top:10px;border:1px solid var(--border)}
+  .scanStatus{display:none;margin-top:10px;padding:10px 12px;border-radius:10px;background:#111722;border:1px solid var(--border);color:var(--muted);font-size:13px;line-height:1.45}
+  .scanStatus.show{display:block}
+  .scanStatus.good{color:#bff4d1;border-color:#2f6d4a}
+  .scanStatus.warn{color:#ffe3a3;border-color:#6d582f}
+  .scanBar{height:5px;background:#252c37;border-radius:999px;overflow:hidden;margin-top:8px}
+  .scanBarFill{height:100%;width:0;background:var(--accent);transition:width .2s}
+  .roundScorePanel{display:none;margin-top:12px;background:#111722;border:1px solid var(--border);border-radius:12px;padding:12px}
+  .roundScorePanel.show{display:block}
+  .roundScoreGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .roundScoreCell label{text-align:center;margin-bottom:4px}
+  .roundScoreCell input{text-align:center;font-weight:800;font-variant-numeric:tabular-nums;padding:9px 5px}
+  .roundScoreCell input.review{border-color:#c69b3b;box-shadow:0 0 0 1px #c69b3b}
+  .scanSummary{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;color:var(--muted);font-size:13px}
+  .scanSummary b{font-size:22px;color:var(--text);font-variant-numeric:tabular-nums}
+  .scanHint{color:var(--muted);font-size:12px;line-height:1.5;margin-top:8px}
+  .editBtn{display:grid;place-items:center;width:38px;height:38px;border-radius:9px;background:var(--panel2);color:var(--text);border:1px solid var(--border);cursor:pointer}
+  .editBtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .modalBackdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;padding:18px;overflow:auto}
+  .modalBackdrop.show{display:flex;align-items:center;justify-content:center}
+  .modal{width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+  .modalHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .modalHeader h3{margin:0;font-size:19px}
+  .closeBtn{width:38px;height:38px;border-radius:9px;background:var(--panel2);color:var(--text);border:1px solid var(--border);cursor:pointer;font-size:20px}
+  .editRounds{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:6px}
+  .editRoundToggle{border:1px solid var(--border);background:var(--panel2);color:var(--muted);padding:10px 6px;border-radius:8px;font-weight:750;cursor:pointer}
+  .editRoundToggle.active{background:var(--accent);border-color:var(--accent);color:#07111d}
+  .editMpr{background:#111722;border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:12px;color:var(--muted)}
+  .editMpr b{float:right;color:var(--good);font-size:20px}
+  button:disabled{cursor:default}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#eef2f7;color:#10151b;padding:10px 14px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:80}
   .toast.show{opacity:1}
 
   @media(max-width:620px){
@@ -102,6 +132,8 @@
     .markButtons button{padding:14px 0}
     .roundCurrent{font-size:32px}
     .mprValue{font-size:31px}
+    .roundScoreGrid{grid-template-columns:repeat(4,1fr)}
+    .modalBackdrop{padding:10px}
   }
 </style>
 </head>
@@ -145,9 +177,19 @@
     </div>
 
     <div class="photoBox">
-      <label>RESULT PHOTO (OPTIONAL)</label>
+      <label>SCAN RESULT PHOTO</label>
       <input id="cuPhoto" type="file" accept="image/*" capture="environment">
+      <div class="scanHint">Photograph the DARTSLIVE result screen with R1–R8 visible. Portrait is fine. The photo is used only for this scan and is not saved in the practice log.</div>
       <img id="photoPreview" class="photoPreview" alt="Result preview">
+      <div id="ocrStatus" class="scanStatus">
+        <span id="ocrStatusText">Reading scores…</span>
+        <div class="scanBar"><div id="scanBarFill" class="scanBarFill"></div></div>
+      </div>
+      <div id="roundScorePanel" class="roundScorePanel">
+        <div class="roundScoreGrid" id="roundScoreGrid"></div>
+        <div class="scanSummary"><span>ROUND TOTAL</span><b id="ocrRoundTotal">—</b></div>
+        <div class="scanHint">Check the eight round scores before recording. You can correct any value manually.</div>
+      </div>
     </div>
   </section>
 
@@ -210,7 +252,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"></path></svg>
       </button>
       <button class="iconBtn" id="exportCsv" title="Export CSV" aria-label="Export CSV">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17V5"></path><path d="m7 10 5-5 5 5"></path><path d="M5 19v2h14v-2"></path></svg>
       </button>
       <button class="iconBtn dangerIcon" id="deleteAll" title="Delete All" aria-label="Delete All">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 15H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
@@ -219,7 +261,7 @@
 
     <div class="history">
       <table>
-        <thead><tr><th>DATE</th><th>TYPE</th><th>DETAILS</th></tr></thead>
+        <thead><tr><th>DATE</th><th>TYPE</th><th>DETAILS</th><th></th></tr></thead>
         <tbody id="historyBody"></tbody>
       </table>
     </div>
@@ -228,6 +270,21 @@
 
 <div id="toast" class="toast"></div>
 
+<div id="editModal" class="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <div class="modal">
+    <div class="modalHeader">
+      <h3 id="editTitle">EDIT RECORD</h3>
+      <button type="button" class="closeBtn" id="closeEdit" aria-label="Close">×</button>
+    </div>
+    <div id="editFields"></div>
+    <div class="actions">
+      <button type="button" class="primary" id="saveEdit">SAVE</button>
+      <button type="button" class="secondary" id="cancelEdit">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -238,6 +295,9 @@ function toast(msg){
   t.textContent=msg;
   t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),1600);
+}
+function haptic(ms=12){
+  try{ if(navigator.vibrate) navigator.vibrate(ms); }catch{}
 }
 function loadLogs(){
   try{
@@ -265,16 +325,67 @@ for(let i=1;i<=8;i++){
   btn.setAttribute('aria-pressed','false');
   btn.textContent=`R${i}`;
   btn.onclick=()=>{
+    haptic();
     const active=btn.classList.toggle('active');
     btn.setAttribute('aria-pressed',String(active));
   };
   $('#cuRounds').appendChild(btn);
 }
 
+// Optional round-score data populated by photo scan (and editable before saving).
+for(let i=1;i<=8;i++){
+  const cell=document.createElement('div');
+  cell.className='roundScoreCell';
+  cell.innerHTML=`<label>R${i}</label><input id="ocrR${i}" type="number" min="0" max="180" inputmode="numeric" placeholder="—">`;
+  const input=cell.querySelector('input');
+  input.addEventListener('input',()=>{ input.classList.remove('review'); updateOcrRoundTotal(); });
+  $('#roundScoreGrid').appendChild(cell);
+}
+
+function getRoundScores(){
+  const vals=Array.from({length:8},(_,i)=>{
+    const raw=$(`#ocrR${i+1}`).value;
+    return raw==='' ? null : Number(raw);
+  });
+  return vals.every(v=>Number.isFinite(v) && v>=0 && v<=180) ? vals : null;
+}
+
+function updateOcrRoundTotal(){
+  const vals=getRoundScores();
+  if(!vals){
+    $('#ocrRoundTotal').textContent='—';
+    return;
+  }
+  const total=vals.reduce((a,b)=>a+b,0);
+  $('#ocrRoundTotal').textContent=total;
+  $('#cuScore').value=total;
+}
+
+function resetPhotoScan(){
+  $('#cuPhoto').value='';
+  const preview=$('#photoPreview');
+  if(preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  preview.dataset.objectUrl='';
+  preview.src='';
+  preview.style.display='none';
+  $('#ocrStatus').className='scanStatus';
+  $('#ocrStatusText').textContent='Reading scores…';
+  $('#scanBarFill').style.width='0%';
+  $('#roundScorePanel').classList.remove('show');
+  for(let i=1;i<=8;i++){
+    const input=$(`#ocrR${i}`);
+    input.value='';
+    input.classList.remove('review');
+  }
+  $('#ocrRoundTotal').textContent='—';
+}
+
 $('#bullPlus').onclick=()=>{
+  haptic();
   $('#cuBull').value=Math.min(24, Number($('#cuBull').value||0)+1);
 };
 $('#bullMinus').onclick=()=>{
+  haptic();
   $('#cuBull').value=Math.max(0, Number($('#cuBull').value||0)-1);
 };
 
@@ -285,22 +396,23 @@ function clearCU(){
     x.classList.remove('active');
     x.setAttribute('aria-pressed','false');
   });
-  $('#cuPhoto').value='';
-  $('#photoPreview').src='';
-  $('#photoPreview').style.display='none';
+  resetPhotoScan();
 }
 
 $('#saveCU').onclick=()=>{
+  haptic(20);
   if($('#cuScore').value===''){alert('Enter a score first.');return;}
   const score=Number($('#cuScore').value);
   const bull=Number($('#cuBull').value||0);
   const noBull=$$('.noBullToggle.active').map(x=>Number(x.dataset.round));
 
   const logs=loadLogs();
+  const roundScores=getRoundScores();
   logs.unshift({
     ts:new Date().toISOString(),
     type:'COUNT-UP',
-    score,bull,noBull
+    score,bull,noBull,
+    ...(roundScores ? {roundScores} : {})
   });
   saveLogs(logs);
 
@@ -308,14 +420,156 @@ $('#saveCU').onclick=()=>{
   toast('COUNT-UP recorded.');
 };
 
-$('#clearCU').onclick=clearCU;
+$('#clearCU').onclick=()=>{ haptic(); clearCU(); };
 
-$('#cuPhoto').onchange=(e)=>{
+let ocrWorker=null;
+
+function ocrProgress(message){
+  if(!message) return;
+  const pct=Number.isFinite(message.progress) ? Math.round(message.progress*100) : 0;
+  if(message.status==='recognizing text'){
+    $('#ocrStatusText').textContent=`Reading scores… ${pct}%`;
+    $('#scanBarFill').style.width=`${Math.max(8,pct)}%`;
+  }else if(message.status){
+    $('#ocrStatusText').textContent='Preparing OCR…';
+    $('#scanBarFill').style.width='8%';
+  }
+}
+
+async function getOcrWorker(){
+  if(ocrWorker) return ocrWorker;
+  if(!window.Tesseract) throw new Error('OCR library could not be loaded. Check the internet connection and try again.');
+  ocrWorker=await Tesseract.createWorker('eng', 1, {logger:ocrProgress});
+  await ocrWorker.setParameters({
+    tessedit_pageseg_mode:'11',
+    tessedit_char_whitelist:'R0123456789 '
+  });
+  return ocrWorker;
+}
+
+async function fileToImage(file){
+  return await new Promise((resolve,reject)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{ URL.revokeObjectURL(url); resolve(img); };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('Could not open the photo.')); };
+    img.src=url;
+  });
+}
+
+async function makeScoreCrop(file){
+  const img=await fileToImage(file);
+  // The round list sits on the left side of a DARTSLIVE result screen.
+  // Keep a generous left area so both portrait and landscape photos work.
+  const sx=0;
+  const sy=Math.round(img.naturalHeight*0.05);
+  const sw=Math.round(img.naturalWidth*0.58);
+  const sh=Math.round(img.naturalHeight*0.90);
+  const scale=Math.min(2.2, 1900/sw);
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(sw*scale));
+  canvas.height=Math.max(1,Math.round(sh*scale));
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+
+  // Grayscale + contrast helps with the white/orange digits on the dark cabinet screen.
+  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const d=imageData.data;
+  for(let i=0;i<d.length;i+=4){
+    const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    const c=Math.max(0,Math.min(255,(g-128)*1.45+128));
+    d[i]=d[i+1]=d[i+2]=c;
+  }
+  ctx.putImageData(imageData,0,0);
+  return canvas;
+}
+
+function parseRoundScores(text){
+  const cleaned=String(text||'')
+    .toUpperCase()
+    .replace(/[|I]/g,'1')
+    .replace(/[^R0-9\n\r ]+/g,' ');
+  const found=new Map();
+
+  // Preferred: anchored R1 ... R8 rows.
+  const anchored=/R\s*([1-8])\s+([0-9]{1,3})/g;
+  let m;
+  while((m=anchored.exec(cleaned))){
+    const round=Number(m[1]), score=Number(m[2]);
+    if(score>=0 && score<=180) found.set(round,score);
+  }
+
+  // Relaxed fallback for OCR that drops the R but keeps "1 64", "2 104", etc.
+  if(found.size<8){
+    for(const line of cleaned.split(/\r?\n/)){
+      const nums=(line.match(/\d{1,4}/g)||[]).map(Number);
+      for(let i=0;i<nums.length-1;i++){
+        const round=nums[i], score=nums[i+1];
+        if(round>=1 && round<=8 && score>=0 && score<=180 && !found.has(round)){
+          found.set(round,score);
+          break;
+        }
+      }
+    }
+  }
+  return Array.from({length:8},(_,i)=>found.get(i+1) ?? null);
+}
+
+function showOcrScores(scores){
+  $('#roundScorePanel').classList.add('show');
+  scores.forEach((score,i)=>{
+    const input=$(`#ocrR${i+1}`);
+    input.value=score ?? '';
+    input.classList.toggle('review',score===null);
+  });
+  updateOcrRoundTotal();
+}
+
+async function scanCountUpPhoto(file){
+  const status=$('#ocrStatus');
+  status.className='scanStatus show';
+  $('#ocrStatusText').textContent='Preparing OCR…';
+  $('#scanBarFill').style.width='8%';
+  $('#roundScorePanel').classList.remove('show');
+
+  try{
+    const canvas=await makeScoreCrop(file);
+    const worker=await getOcrWorker();
+    const result=await worker.recognize(canvas);
+    const scores=parseRoundScores(result?.data?.text||'');
+    const count=scores.filter(v=>v!==null).length;
+    showOcrScores(scores);
+    $('#scanBarFill').style.width='100%';
+
+    if(count===8){
+      status.className='scanStatus show good';
+      $('#ocrStatusText').textContent='8/8 rounds read. Check the scores, then record the game.';
+      haptic(20);
+    }else{
+      status.className='scanStatus show warn';
+      $('#ocrStatusText').textContent=`${count}/8 rounds read. Fill or correct the highlighted fields.`;
+    }
+  }catch(err){
+    console.error(err);
+    status.className='scanStatus show warn';
+    $('#ocrStatusText').textContent=err?.message || 'Could not read the photo. Enter the score manually or try another photo.';
+    $('#scanBarFill').style.width='0%';
+    $('#roundScorePanel').classList.add('show');
+    for(let i=1;i<=8;i++) $(`#ocrR${i}`).classList.add('review');
+  }
+}
+
+$('#cuPhoto').onchange=async(e)=>{
   const f=e.target.files?.[0];
   if(!f) return;
+  haptic();
+  const preview=$('#photoPreview');
+  if(preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
   const url=URL.createObjectURL(f);
-  $('#photoPreview').src=url;
-  $('#photoPreview').style.display='block';
+  preview.dataset.objectUrl=url;
+  preview.src=url;
+  preview.style.display='block';
+  await scanCountUpPhoto(f);
 };
 
 let cricket = [];
@@ -363,6 +617,7 @@ function renderCurrentRound(){
       if(cricket[currentRound][dart]===mark) btn.classList.add('sel');
 
       btn.onclick=()=>{
+        haptic();
         cricket[currentRound][dart]=mark;
         renderCurrentRound();
       };
@@ -409,10 +664,12 @@ function clearCricket(){
 }
 
 $('#clearCR').onclick=()=>{
+  haptic();
   if(confirm('Clear this Cricket game and start over?')) clearCricket();
 };
 
 $('#prevRound').onclick=()=>{
+  haptic();
   if(currentRound>0){
     currentRound--;
     renderCurrentRound();
@@ -449,6 +706,7 @@ function saveCricketGame(){
 }
 
 $('#nextRound').onclick=()=>{
+  haptic();
   if(!cricket[currentRound].every(v=>v!==null)){
     toast('Enter all 3 darts first.');
     return;
@@ -562,25 +820,149 @@ function renderHistory(){
   const logs=loadLogs();
   if(!logs.length){
     const tr=document.createElement('tr');
-    tr.innerHTML='<td colspan="3" style="color:var(--muted)">NO RECORDS</td>';
+    tr.innerHTML='<td colspan="4" style="color:var(--muted)">NO RECORDS</td>';
     body.appendChild(tr);
     return;
   }
 
-  logs.forEach(x=>{
+  logs.forEach((x,index)=>{
     const tr=document.createElement('tr');
     let detail='';
 
     if(x.type==='COUNT-UP'){
       detail=`${x.score} / BULL ${x.bull} / NO BULL R ${x.noBull?.length?x.noBull.join(','):'-'}`;
+      if(Array.isArray(x.roundScores) && x.roundScores.length===8) detail+=` / ROUNDS ${x.roundScores.join('-')}`;
     }else{
       detail=`TARGET ${x.target} / ${x.marks} MARKS / ${Number(x.mpr).toFixed(2)} MPR / ${x.rounds}R`;
     }
 
-    tr.innerHTML=`<td>${fmtDate(x.ts)}</td><td>${x.type}</td><td>${detail}</td>`;
+    tr.innerHTML=`<td>${fmtDate(x.ts)}</td><td>${x.type}</td><td>${detail}</td><td><button type="button" class="editBtn" data-edit="${index}" title="Edit" aria-label="Edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></td>`;
     body.appendChild(tr);
   });
+
+  $$('[data-edit]').forEach(btn=>btn.onclick=()=>openEditRecord(Number(btn.dataset.edit)));
 }
+
+let editingIndex=null;
+let editNoBull=[];
+
+function closeEditRecord(){
+  editingIndex=null;
+  $('#editModal').classList.remove('show');
+  $('#editFields').innerHTML='';
+}
+
+function renderEditCountUp(log){
+  editNoBull=[...(log.noBull||[])];
+  const rounds=Array.isArray(log.roundScores) && log.roundScores.length===8 ? log.roundScores : Array(8).fill('');
+  $('#editFields').innerHTML=`
+    <div class="grid">
+      <div><label>SCORE</label><input id="editScore" type="number" min="0" value="${Number(log.score)||0}"></div>
+      <div><label>BULLS</label><input id="editBull" type="number" min="0" max="24" value="${Number(log.bull)||0}"></div>
+    </div>
+    <label style="margin-top:14px">NO BULL ROUNDS</label>
+    <div class="editRounds" id="editNoBullRounds"></div>
+    <label style="margin-top:14px">ROUND SCORES (OPTIONAL)</label>
+    <div class="roundScoreGrid" id="editRoundScores"></div>`;
+
+  for(let i=1;i<=8;i++){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='editRoundToggle'+(editNoBull.includes(i)?' active':'');
+    btn.textContent=`R${i}`;
+    btn.onclick=()=>{
+      haptic();
+      if(editNoBull.includes(i)) editNoBull=editNoBull.filter(x=>x!==i); else editNoBull.push(i);
+      btn.classList.toggle('active');
+    };
+    $('#editNoBullRounds').appendChild(btn);
+
+    const cell=document.createElement('div');
+    cell.className='roundScoreCell';
+    cell.innerHTML=`<label>R${i}</label><input class="editRoundScore" type="number" min="0" max="180" inputmode="numeric" value="${rounds[i-1]??''}">`;
+    $('#editRoundScores').appendChild(cell);
+  }
+
+  $$('.editRoundScore').forEach(input=>input.addEventListener('input',()=>{
+    const vals=$$('.editRoundScore').map(x=>x.value===''?null:Number(x.value));
+    if(vals.every(v=>Number.isFinite(v) && v>=0 && v<=180)) $('#editScore').value=vals.reduce((a,b)=>a+b,0);
+  }));
+}
+
+function renderEditCricket(log){
+  const targets=['20','19','18','17','16','15','BULL'];
+  $('#editFields').innerHTML=`
+    <div class="grid">
+      <div><label>TARGET NUMBER</label><select id="editTarget">${targets.map(x=>`<option ${String(log.target)===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div><label>ROUNDS</label><select id="editRounds"><option value="15" ${Number(log.rounds)===15?'selected':''}>15R</option><option value="20" ${Number(log.rounds)===20?'selected':''}>20R</option></select></div>
+      <div><label>MARKS</label><input id="editMarks" type="number" min="0" value="${Number(log.marks)||0}"></div>
+    </div>
+    <div class="editMpr">MPR <b id="editMpr">0.00</b></div>`;
+  const calc=()=>{
+    const rounds=Math.max(1,Number($('#editRounds').value)||1);
+    const marks=Math.max(0,Number($('#editMarks').value)||0);
+    $('#editMpr').textContent=(marks/rounds).toFixed(2);
+  };
+  $('#editRounds').addEventListener('change',calc);
+  $('#editMarks').addEventListener('input',calc);
+  calc();
+}
+
+function openEditRecord(index){
+  const logs=loadLogs();
+  const log=logs[index];
+  if(!log) return;
+  haptic();
+  editingIndex=index;
+  $('#editTitle').textContent=`EDIT ${log.type}`;
+  if(log.type==='COUNT-UP') renderEditCountUp(log); else renderEditCricket(log);
+  $('#editModal').classList.add('show');
+}
+
+$('#closeEdit').onclick=closeEditRecord;
+$('#cancelEdit').onclick=closeEditRecord;
+$('#editModal').addEventListener('click',e=>{ if(e.target===$('#editModal')) closeEditRecord(); });
+
+$('#saveEdit').onclick=()=>{
+  if(editingIndex===null) return;
+  const logs=loadLogs();
+  const old=logs[editingIndex];
+  if(!old) return closeEditRecord();
+
+  if(old.type==='COUNT-UP'){
+    const score=Number($('#editScore').value);
+    const bull=Number($('#editBull').value);
+    if(!Number.isFinite(score) || score<0 || !Number.isFinite(bull) || bull<0 || bull>24){
+      alert('Check SCORE and BULLS.');
+      return;
+    }
+    old.score=score;
+    old.bull=bull;
+    old.noBull=[...editNoBull].sort((a,b)=>a-b);
+    const vals=$$('.editRoundScore').map(x=>x.value===''?null:Number(x.value));
+    if(vals.every(v=>Number.isFinite(v) && v>=0 && v<=180)) old.roundScores=vals;
+    else delete old.roundScores;
+  }else{
+    const rounds=Number($('#editRounds').value);
+    const marks=Number($('#editMarks').value);
+    if(!Number.isFinite(rounds) || rounds<=0 || !Number.isFinite(marks) || marks<0){
+      alert('Check ROUNDS and MARKS.');
+      return;
+    }
+    const summaryChanged=rounds!==Number(old.rounds) || marks!==Number(old.marks);
+    old.target=$('#editTarget').value;
+    old.rounds=rounds;
+    old.marks=marks;
+    old.mpr=Number((marks/rounds).toFixed(2));
+    if(summaryChanged){ delete old.darts; delete old.hitDarts; }
+  }
+
+  saveLogs(logs);
+  haptic(20);
+  closeEditRecord();
+  renderHistory();
+  toast('Record updated.');
+};
 
 $('#deleteAll').onclick=()=>{
   if(confirm('Delete all saved history?')){
@@ -592,11 +974,12 @@ $('#deleteAll').onclick=()=>{
 };
 
 $('#exportCsv').onclick=()=>{
+  haptic();
   const rows=[['DATE','TYPE','DETAILS']];
 
   loadLogs().forEach(x=>{
     const detail=x.type==='COUNT-UP'
-      ? `${x.score} / BULL ${x.bull} / NO BULL R ${(x.noBull||[]).join(',')}`
+      ? `${x.score} / BULL ${x.bull} / NO BULL R ${(x.noBull||[]).join(',')}${Array.isArray(x.roundScores)&&x.roundScores.length===8?` / ROUNDS ${x.roundScores.join('-')}`:''}`
       : `TARGET ${x.target} / ${x.marks} MARKS / ${Number(x.mpr).toFixed(2)} MPR / ${x.rounds}R`;
 
     rows.push([fmtDate(x.ts),x.type,detail]);
@@ -631,6 +1014,13 @@ document.addEventListener('pointerdown',requestWakeLock,{passive:true});
 
 newCricketSession();
 requestWakeLock();
+
+// Keep PWA installation/update support active for new and existing users.
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('Service worker registration failed:',err));
+  });
+}
 </script>
 </body>
 </html>
