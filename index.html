@@ -245,8 +245,8 @@
   <section id="history">
     <h2>HISTORY</h2>
     <div class="iconActions">
-      <button class="iconBtn shareIcon" id="shareToday" title="Share" aria-label="Share">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 10.6 15.4 6.7M8.6 13.4l6.8 3.9"></path></svg>
+      <button class="iconBtn shareIcon" id="shareToday" title="Send to Analysis Chat (long press to change destination)" aria-label="Send to Analysis Chat">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13a5 5 0 0 1-5 5H8l-5 3V7a4 4 0 0 1 4-4h6"></path><path d="M15 3h6v6"></path><path d="m21 3-8 8"></path></svg>
       </button>
       <button class="iconBtn" id="copyToday" title="Copy" aria-label="Copy">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"></path></svg>
@@ -289,6 +289,7 @@
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const KEY = "dartsPracticeLog_v2";
+const ANALYSIS_CHAT_URL_KEY = "dartsPracticeAnalysisChatUrl_v1";
 
 function toast(msg){
   const t=$("#toast");
@@ -779,38 +780,91 @@ function makeShareText(){
   return lines.join('\n');
 }
 
-async function copyShare(){
-  const text=makeShareText();
+async function copyText(text,{showToast=true}={}){
   try{
     await navigator.clipboard.writeText(text);
-    toast('Copied.');
   }catch{
     const ta=document.createElement('textarea');
     ta.value=text;
+    ta.setAttribute('readonly','');
+    ta.style.position='fixed';
+    ta.style.opacity='0';
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
     ta.remove();
-    toast('Copied.');
   }
+  if(showToast) toast('Copied.');
+}
+
+async function copyShare(){
+  haptic();
+  await copyText(makeShareText());
+}
+
+function isValidAnalysisChatUrl(value){
+  try{
+    const u=new URL(value);
+    return u.protocol==='https:' && u.hostname==='chatgpt.com' && u.pathname.includes('/c/');
+  }catch{return false}
+}
+
+function configureAnalysisChat(){
+  const current=localStorage.getItem(ANALYSIS_CHAT_URL_KEY)||'';
+  const value=prompt('Paste the ChatGPT analysis chat URL.',current);
+  if(value===null) return null;
+  const trimmed=value.trim();
+  if(!isValidAnalysisChatUrl(trimmed)){
+    alert('Please enter a valid chatgpt.com conversation URL.');
+    return null;
+  }
+  localStorage.setItem(ANALYSIS_CHAT_URL_KEY,trimmed);
+  toast('Analysis chat saved.');
+  return trimmed;
+}
+
+async function sendToAnalysisChat(){
+  haptic();
+  let chatUrl=localStorage.getItem(ANALYSIS_CHAT_URL_KEY);
+  if(!isValidAnalysisChatUrl(chatUrl||'')) chatUrl=configureAnalysisChat();
+  if(!chatUrl) return;
+
+  const text=makeShareText();
+  // Start clipboard access while the tap still counts as a user gesture, then
+  // open ChatGPT in a separate window/tab. The result stays on the clipboard
+  // ready to paste into the fixed analysis conversation.
+  const copyPromise=copyText(text,{showToast:false});
+  const opened=window.open(chatUrl,'_blank');
+  if(opened) try{ opened.opener=null; }catch{}
+  try{
+    await copyPromise;
+    toast(opened ? 'Copied — paste in Analysis Chat.' : 'Copied — open Analysis Chat and paste.');
+  }catch{
+    toast('Open Analysis Chat and paste the copied result.');
+  }
+  if(!opened) window.location.href=chatUrl;
 }
 
 $('#copyToday').onclick=copyShare;
 
-$('#shareToday').onclick=async()=>{
-  const text=makeShareText();
-  if(navigator.share){
-    try{
-      await navigator.share({
-        title:'Darts Practice Log',
-        text
-      });
-    }catch(e){
-      if(e.name!=='AbortError') await copyShare();
-    }
-  }else{
-    await copyShare();
-  }
+const shareBtn=$('#shareToday');
+let shareHoldTimer=null;
+let shareLongPressed=false;
+shareBtn.addEventListener('pointerdown',()=>{
+  shareLongPressed=false;
+  shareHoldTimer=setTimeout(()=>{
+    shareLongPressed=true;
+    haptic(30);
+    configureAnalysisChat();
+  },700);
+});
+['pointerup','pointercancel','pointerleave'].forEach(type=>shareBtn.addEventListener(type,()=>{
+  if(shareHoldTimer){ clearTimeout(shareHoldTimer); shareHoldTimer=null; }
+}));
+shareBtn.addEventListener('contextmenu',e=>e.preventDefault());
+shareBtn.onclick=()=>{
+  if(shareLongPressed){ shareLongPressed=false; return; }
+  sendToAnalysisChat();
 };
 
 function renderHistory(){
