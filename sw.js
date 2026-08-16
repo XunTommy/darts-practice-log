@@ -1,4 +1,4 @@
-const CACHE = "darts-practice-v2";
+const CACHE = "darts-practice-v3";
 const ASSETS = [
   "./",
   "./index.html",
