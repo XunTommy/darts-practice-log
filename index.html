@@ -30,6 +30,21 @@
   .bullBtn{height:48px;border:0;border-radius:10px;background:var(--good);color:#07140b;font-size:22px;font-weight:800;cursor:pointer}
   .bullMinus{height:48px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font-size:20px;font-weight:800;cursor:pointer}
 
+  .cuLayout{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(420px,1.45fr);gap:14px;align-items:stretch}
+  .cuScorePane,.cuPlayPane{min-width:0}
+  .cuScorePane{display:grid;grid-template-rows:1fr auto;gap:12px}
+  .cuScoreCard,.cuBullPanel,.cuNoBullPanel{background:#111722;border:1px solid var(--border);border-radius:13px;padding:14px}
+  .cuScoreCard{display:flex;flex-direction:column;justify-content:center}
+  .cuScoreInput{font-size:38px;font-weight:850;text-align:center;min-height:78px;font-variant-numeric:tabular-nums}
+  .cuPlayPane{display:grid;grid-template-rows:auto 1fr;gap:12px}
+  .cuBullControls{display:grid;grid-template-columns:minmax(90px,150px) 78px minmax(120px,180px);gap:8px;align-items:stretch}
+  .cuBullInput{font-size:30px;font-weight:850;text-align:center;font-variant-numeric:tabular-nums}
+  .cuBullControls .bullBtn,.cuBullControls .bullMinus{height:auto;min-height:64px}
+  .cuBullControls .bullBtn{font-size:26px}
+  .cuMainActions{display:grid;grid-template-columns:1.45fr .8fr;gap:8px}
+  .cuMainActions button{min-height:52px}
+  .cuNoBullPanel .rounds{margin-top:6px}
+
   .rounds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
   .noBullToggle{border:1px solid var(--border);background:var(--panel2);color:var(--muted);padding:12px 8px;border-radius:9px;font-size:15px;font-weight:750;cursor:pointer;transition:.15s}
   .noBullToggle.active{background:var(--warning);border-color:var(--warning);color:var(--warningInk);box-shadow:0 0 0 1px var(--warning)}
@@ -118,16 +133,22 @@
     label{font-size:11px;margin-bottom:4px}
     input,select{padding:8px 9px;font-size:15px}
 
-    /* COUNT-UP: full-width landscape scoring layout. */
-    #countup.active{display:grid;grid-template-columns:1fr;align-items:start}
-    #countup>.grid{grid-column:1;grid-row:1;grid-template-columns:minmax(140px,.7fr) minmax(280px,1.3fr);gap:8px}
-    #countup>label{grid-column:1;grid-row:2;margin-top:8px!important}
-    #countup>.rounds{grid-column:1;grid-row:3;margin-top:0;grid-template-columns:repeat(8,1fr);gap:5px}
-    .noBullToggle{padding:9px 3px;font-size:13px;border-radius:8px}
-    #countup>.actions{grid-column:1;grid-row:4;display:grid;grid-template-columns:1.6fr 1fr;gap:7px;margin-top:8px}
-    #countup>.actions button{min-height:42px}
-    .bullBox{grid-template-columns:1fr 82px 62px;gap:6px}
-    .bullBtn,.bullMinus{height:42px}
+    /* COUNT-UP: two-zone landscape layout. Left is score/save, right is in-play input. */
+    #countup.active{display:block;padding:12px 16px 14px}
+    #countup .cuLayout{grid-template-columns:minmax(300px,.78fr) minmax(560px,1.5fr);gap:14px;min-height:300px}
+    #countup .cuScorePane{gap:10px}
+    #countup .cuScoreCard,#countup .cuBullPanel,#countup .cuNoBullPanel{padding:12px 14px;border-radius:11px}
+    #countup .cuScoreInput{min-height:104px;font-size:52px;padding:10px 12px}
+    #countup .cuMainActions{grid-template-columns:1fr;gap:7px}
+    #countup .cuMainActions button{min-height:54px;font-size:17px}
+    #countup .cuPlayPane{grid-template-rows:auto 1fr;gap:9px}
+    #countup .cuBullControls{grid-template-columns:minmax(100px,145px) 92px minmax(170px,230px);gap:8px}
+    #countup .cuBullInput{font-size:34px;min-height:66px}
+    #countup .cuBullControls .bullBtn,#countup .cuBullControls .bullMinus{min-height:66px}
+    #countup .cuBullControls .bullBtn{font-size:29px}
+    #countup .cuNoBullPanel{display:flex;flex-direction:column;justify-content:center}
+    #countup .cuNoBullPanel .rounds{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,minmax(52px,1fr));gap:7px;margin-top:5px}
+    #countup .noBullToggle{padding:10px 4px;font-size:15px;border-radius:9px;min-height:52px}
 
     /* CRICKET: setup stays narrow on the left; throwing controls use the wide area. */
     #cricket.active{display:grid;grid-template-columns:170px minmax(0,1fr);grid-template-areas:"setup play" "actions play";gap:8px 10px;align-items:start}
@@ -145,15 +166,15 @@
     .marksMini{font-size:9px;margin-top:3px}
     .marksMini b{font-size:12px}
     .currentDarts{grid-template-columns:repeat(3,1fr);gap:6px}
-    .currentDart{padding:6px;border-radius:10px}
+    .currentDart{padding:7px;border-radius:10px}
     .dartTitle{font-size:10px;margin-bottom:4px}
     .markButtons{grid-template-columns:repeat(4,1fr);gap:4px}
-    .markButtons button{padding:4px 0;min-height:43px;font-size:15px;border-radius:8px}
+    .markButtons button{padding:5px 0;min-height:48px;font-size:15px;border-radius:8px}
     .cricketMark{transform:scale(.82)}
     .roundTotal{font-size:10px;margin-top:5px}
     .roundTotal b{font-size:17px}
     .roundNav{grid-template-columns:1fr 2fr;gap:6px;margin-top:6px}
-    .roundNav button{min-height:42px;padding:7px 10px}
+    .roundNav button{min-height:48px;padding:8px 10px}
 
     /* HISTORY: use the horizontal space rather than forcing a narrow mobile table. */
     #history.active{padding-top:9px}
@@ -171,6 +192,12 @@
     header{padding-left:14px;padding-right:14px}
     main{padding-left:12px;padding-right:12px}
     section{padding:14px}
+    .cuLayout{grid-template-columns:1fr}
+    .cuScorePane{grid-template-rows:auto auto}
+    .cuPlayPane{grid-template-rows:auto auto}
+    .cuBullControls{grid-template-columns:1fr 82px 92px}
+    .cuScoreInput{font-size:36px;min-height:70px}
+    .cuMainActions{grid-template-columns:1.4fr 1fr}
     .bullBox{grid-template-columns:1fr 82px 60px}
     .bullBtn,.bullMinus{height:52px}
     .rounds{grid-template-columns:repeat(4,1fr)}
@@ -198,30 +225,35 @@
   <section id="countup" class="active">
     <h2>COUNT-UP</h2>
 
-    <div class="grid">
-      <div>
-        <label>SCORE</label>
-        <input id="cuScore" type="number" min="0" placeholder="e.g. 455">
+    <div class="cuLayout">
+      <div class="cuScorePane">
+        <div class="cuScoreCard">
+          <label for="cuScore">SCORE</label>
+          <input class="cuScoreInput" id="cuScore" type="number" min="0" placeholder="455" inputmode="numeric">
+        </div>
+
+        <div class="cuMainActions">
+          <button class="primary" id="saveCU">RECORD GAME</button>
+          <button class="secondary" id="clearCU">CLEAR</button>
+        </div>
       </div>
 
-      <div>
-        <label>BULLS</label>
-        <div class="bullBox">
-          <input id="cuBull" type="number" min="0" max="24" value="0" inputmode="numeric">
-          <button class="bullBtn" id="bullPlus" type="button">＋1</button>
-          <button class="bullMinus" id="bullMinus" type="button">−1</button>
+      <div class="cuPlayPane">
+        <div class="cuBullPanel">
+          <label for="cuBull">BULLS</label>
+          <div class="cuBullControls">
+            <input class="cuBullInput" id="cuBull" type="number" min="0" max="24" value="0" inputmode="numeric">
+            <button class="bullMinus" id="bullMinus" type="button" aria-label="Remove one bull">−1</button>
+            <button class="bullBtn" id="bullPlus" type="button">＋1</button>
+          </div>
+        </div>
+
+        <div class="cuNoBullPanel">
+          <label>NO BULL ROUNDS</label>
+          <div class="rounds" id="cuRounds"></div>
         </div>
       </div>
     </div>
-
-    <label style="margin-top:16px">NO BULL ROUNDS</label>
-    <div class="rounds" id="cuRounds"></div>
-
-    <div class="actions">
-      <button class="primary" id="saveCU">RECORD GAME</button>
-      <button class="secondary" id="clearCU">CLEAR</button>
-    </div>
-
   </section>
 
   <section id="cricket">
