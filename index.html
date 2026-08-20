@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0f1115" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <title>Darts Practice Log</title>
@@ -10,7 +10,7 @@
   :root{
     --bg:#0f1115; --panel:#181c23; --panel2:#202631; --text:#eef2f7;
     --muted:#9aa6b2; --accent:#5da9ff; --good:#55d187; --danger:#ff6b6b;
-    --border:#303846;
+    --warning:#ffb454; --warningInk:#2a1700; --border:#303846;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
@@ -32,7 +32,7 @@
 
   .rounds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
   .noBullToggle{border:1px solid var(--border);background:var(--panel2);color:var(--muted);padding:12px 8px;border-radius:9px;font-size:15px;font-weight:750;cursor:pointer;transition:.15s}
-  .noBullToggle.active{background:var(--accent);border-color:var(--accent);color:#07111d;box-shadow:0 0 0 1px var(--accent)}
+  .noBullToggle.active{background:var(--warning);border-color:var(--warning);color:var(--warningInk);box-shadow:0 0 0 1px var(--warning)}
 
   button{font:inherit}
   .primary,.secondary,.danger,.share,.iconBtn{border:0;border-radius:10px;padding:11px 14px;cursor:pointer}
@@ -86,25 +86,10 @@
   th,td{border-bottom:1px solid var(--border);padding:9px 7px;text-align:left;vertical-align:top}
   th{color:var(--muted);font-weight:600}
   .note{color:var(--muted);font-size:13px;line-height:1.55}
-  .photoBox{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
-  .photoPreview{display:none;max-width:100%;max-height:300px;border-radius:10px;margin-top:10px;border:1px solid var(--border)}
-  .scanStatus{display:none;margin-top:10px;padding:10px 12px;border-radius:10px;background:#111722;border:1px solid var(--border);color:var(--muted);font-size:13px;line-height:1.45}
-  .scanStatus.show{display:block}
-  .scanStatus.good{color:#bff4d1;border-color:#2f6d4a}
-  .scanStatus.warn{color:#ffe3a3;border-color:#6d582f}
-  .scanBar{height:5px;background:#252c37;border-radius:999px;overflow:hidden;margin-top:8px}
-  .scanBarFill{height:100%;width:0;background:var(--accent);transition:width .2s}
-  .roundScorePanel{display:none;margin-top:12px;background:#111722;border:1px solid var(--border);border-radius:12px;padding:12px}
-  .roundScorePanel.show{display:block}
-  .roundScoreGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-  .roundScoreCell label{text-align:center;margin-bottom:4px}
-  .roundScoreCell input{text-align:center;font-weight:800;font-variant-numeric:tabular-nums;padding:9px 5px}
-  .roundScoreCell input.review{border-color:#c69b3b;box-shadow:0 0 0 1px #c69b3b}
-  .scanSummary{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;color:var(--muted);font-size:13px}
-  .scanSummary b{font-size:22px;color:var(--text);font-variant-numeric:tabular-nums}
-  .scanHint{color:var(--muted);font-size:12px;line-height:1.5;margin-top:8px}
-  .editBtn{display:grid;place-items:center;width:38px;height:38px;border-radius:9px;background:var(--panel2);color:var(--text);border:1px solid var(--border);cursor:pointer}
-  .editBtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .rowActions{display:flex;gap:6px;align-items:center;white-space:nowrap}
+  .editBtn,.deleteRowBtn{display:grid;place-items:center;width:38px;height:38px;border-radius:9px;background:var(--panel2);color:var(--text);border:1px solid var(--border);cursor:pointer}
+  .deleteRowBtn{background:#3a2023;color:#ffd7d7;border-color:#553034}
+  .editBtn svg,.deleteRowBtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .modalBackdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;padding:18px;overflow:auto}
   .modalBackdrop.show{display:flex;align-items:center;justify-content:center}
   .modal{width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
@@ -113,14 +98,76 @@
   .closeBtn{width:38px;height:38px;border-radius:9px;background:var(--panel2);color:var(--text);border:1px solid var(--border);cursor:pointer;font-size:20px}
   .editRounds{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:6px}
   .editRoundToggle{border:1px solid var(--border);background:var(--panel2);color:var(--muted);padding:10px 6px;border-radius:8px;font-weight:750;cursor:pointer}
-  .editRoundToggle.active{background:var(--accent);border-color:var(--accent);color:#07111d}
+  .editRoundToggle.active{background:var(--warning);border-color:var(--warning);color:var(--warningInk)}
   .editMpr{background:#111722;border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:12px;color:var(--muted)}
   .editMpr b{float:right;color:var(--good);font-size:20px}
   button:disabled{cursor:default}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#eef2f7;color:#10151b;padding:10px 14px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:80}
   .toast.show{opacity:1}
 
-  @media(max-width:620px){
+  /* Landscape-first layout for the DARTSLIVE card-slot placement. */
+  @media (orientation:landscape) and (max-height:650px){
+    body{min-height:100dvh}
+    header{max-width:none;padding:6px max(12px,env(safe-area-inset-right)) 2px max(12px,env(safe-area-inset-left))}
+    h1{font-size:17px;line-height:1.15}
+    main{max-width:none;padding:4px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+    .tab{padding:7px 10px;border-radius:8px;min-height:36px}
+    section{padding:10px;border-radius:12px}
+    section>h2{display:none}
+    label{font-size:11px;margin-bottom:4px}
+    input,select{padding:8px 9px;font-size:15px}
+
+    /* COUNT-UP: full-width landscape scoring layout. */
+    #countup.active{display:grid;grid-template-columns:1fr;align-items:start}
+    #countup>.grid{grid-column:1;grid-row:1;grid-template-columns:minmax(140px,.7fr) minmax(280px,1.3fr);gap:8px}
+    #countup>label{grid-column:1;grid-row:2;margin-top:8px!important}
+    #countup>.rounds{grid-column:1;grid-row:3;margin-top:0;grid-template-columns:repeat(8,1fr);gap:5px}
+    .noBullToggle{padding:9px 3px;font-size:13px;border-radius:8px}
+    #countup>.actions{grid-column:1;grid-row:4;display:grid;grid-template-columns:1.6fr 1fr;gap:7px;margin-top:8px}
+    #countup>.actions button{min-height:42px}
+    .bullBox{grid-template-columns:1fr 82px 62px;gap:6px}
+    .bullBtn,.bullMinus{height:42px}
+
+    /* CRICKET: setup stays narrow on the left; throwing controls use the wide area. */
+    #cricket.active{display:grid;grid-template-columns:170px minmax(0,1fr);grid-template-areas:"setup play" "actions play";gap:8px 10px;align-items:start}
+    #cricket>.grid{grid-area:setup;grid-template-columns:1fr;gap:7px}
+    #cricket>.cricketPlay{grid-area:play;margin-top:0;min-width:0}
+    #cricket>.actions{grid-area:actions;margin-top:0;align-self:end}
+    #cricket>.actions button{width:100%;min-height:40px}
+    .roundStatus{padding:7px 10px;margin-bottom:7px;border-radius:10px}
+    .roundCurrent{font-size:25px}
+    .roundMax{font-size:13px}
+    .roundTarget{font-size:10px;margin-top:3px}
+    .mprPanel{min-width:100px}
+    .mprLabel{font-size:9px}
+    .mprValue{font-size:27px}
+    .marksMini{font-size:9px;margin-top:3px}
+    .marksMini b{font-size:12px}
+    .currentDarts{grid-template-columns:repeat(3,1fr);gap:6px}
+    .currentDart{padding:6px;border-radius:10px}
+    .dartTitle{font-size:10px;margin-bottom:4px}
+    .markButtons{grid-template-columns:repeat(4,1fr);gap:4px}
+    .markButtons button{padding:4px 0;min-height:43px;font-size:15px;border-radius:8px}
+    .cricketMark{transform:scale(.82)}
+    .roundTotal{font-size:10px;margin-top:5px}
+    .roundTotal b{font-size:17px}
+    .roundNav{grid-template-columns:1fr 2fr;gap:6px;margin-top:6px}
+    .roundNav button{min-height:42px;padding:7px 10px}
+
+    /* HISTORY: use the horizontal space rather than forcing a narrow mobile table. */
+    #history.active{padding-top:9px}
+    #history .iconActions{gap:6px}
+    #history .iconBtn{width:40px;height:40px}
+    #history .history{margin-top:8px;max-height:calc(100dvh - 115px);overflow:auto}
+    #history table{min-width:680px;font-size:12px}
+    #history th,#history td{padding:6px}
+    .editBtn,.deleteRowBtn{width:34px;height:34px}
+
+    .toast{bottom:max(10px,env(safe-area-inset-bottom));padding:7px 12px;font-size:12px}
+  }
+
+  @media(max-width:620px) and (orientation:portrait){
     header{padding-left:14px;padding-right:14px}
     main{padding-left:12px;padding-right:12px}
     section{padding:14px}
@@ -132,7 +179,6 @@
     .markButtons button{padding:14px 0}
     .roundCurrent{font-size:32px}
     .mprValue{font-size:31px}
-    .roundScoreGrid{grid-template-columns:repeat(4,1fr)}
     .modalBackdrop{padding:10px}
   }
 </style>
@@ -176,21 +222,6 @@
       <button class="secondary" id="clearCU">CLEAR</button>
     </div>
 
-    <div class="photoBox">
-      <label>SCAN RESULT PHOTO</label>
-      <input id="cuPhoto" type="file" accept="image/*" capture="environment">
-      <div class="scanHint">Photograph the DARTSLIVE result screen with R1–R8 visible. Portrait is fine. The photo is used only for this scan and is not saved in the practice log.</div>
-      <img id="photoPreview" class="photoPreview" alt="Result preview">
-      <div id="ocrStatus" class="scanStatus">
-        <span id="ocrStatusText">Reading scores…</span>
-        <div class="scanBar"><div id="scanBarFill" class="scanBarFill"></div></div>
-      </div>
-      <div id="roundScorePanel" class="roundScorePanel">
-        <div class="roundScoreGrid" id="roundScoreGrid"></div>
-        <div class="scanSummary"><span>ROUND TOTAL</span><b id="ocrRoundTotal">—</b></div>
-        <div class="scanHint">Check the eight round scores before recording. You can correct any value manually.</div>
-      </div>
-    </div>
   </section>
 
   <section id="cricket">
@@ -284,7 +315,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -340,53 +370,6 @@ for(let i=1;i<=8;i++){
   $('#cuRounds').appendChild(btn);
 }
 
-// Optional round-score data populated by photo scan (and editable before saving).
-for(let i=1;i<=8;i++){
-  const cell=document.createElement('div');
-  cell.className='roundScoreCell';
-  cell.innerHTML=`<label>R${i}</label><input id="ocrR${i}" type="number" min="0" max="180" inputmode="numeric" placeholder="—">`;
-  const input=cell.querySelector('input');
-  input.addEventListener('input',()=>{ input.classList.remove('review'); updateOcrRoundTotal(); });
-  $('#roundScoreGrid').appendChild(cell);
-}
-
-function getRoundScores(){
-  const vals=Array.from({length:8},(_,i)=>{
-    const raw=$(`#ocrR${i+1}`).value;
-    return raw==='' ? null : Number(raw);
-  });
-  return vals.every(v=>Number.isFinite(v) && v>=0 && v<=180) ? vals : null;
-}
-
-function updateOcrRoundTotal(){
-  const vals=getRoundScores();
-  if(!vals){
-    $('#ocrRoundTotal').textContent='—';
-    return;
-  }
-  const total=vals.reduce((a,b)=>a+b,0);
-  $('#ocrRoundTotal').textContent=total;
-  $('#cuScore').value=total;
-}
-
-function resetPhotoScan(){
-  $('#cuPhoto').value='';
-  const preview=$('#photoPreview');
-  if(preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
-  preview.dataset.objectUrl='';
-  preview.src='';
-  preview.style.display='none';
-  $('#ocrStatus').className='scanStatus';
-  $('#ocrStatusText').textContent='Reading scores…';
-  $('#scanBarFill').style.width='0%';
-  $('#roundScorePanel').classList.remove('show');
-  for(let i=1;i<=8;i++){
-    const input=$(`#ocrR${i}`);
-    input.value='';
-    input.classList.remove('review');
-  }
-  $('#ocrRoundTotal').textContent='—';
-}
 
 $('#bullPlus').onclick=()=>{
   haptic();
@@ -404,7 +387,6 @@ function clearCU(){
     x.classList.remove('active');
     x.setAttribute('aria-pressed','false');
   });
-  resetPhotoScan();
 }
 
 $('#saveCU').onclick=()=>{
@@ -415,12 +397,10 @@ $('#saveCU').onclick=()=>{
   const noBull=$$('.noBullToggle.active').map(x=>Number(x.dataset.round));
 
   const logs=loadLogs();
-  const roundScores=getRoundScores();
   logs.unshift({
     ts:new Date().toISOString(),
     type:'COUNT-UP',
-    score,bull,noBull,
-    ...(roundScores ? {roundScores} : {})
+    score,bull,noBull
   });
   saveLogs(logs);
 
@@ -429,156 +409,6 @@ $('#saveCU').onclick=()=>{
 };
 
 $('#clearCU').onclick=()=>{ haptic(); clearCU(); };
-
-let ocrWorker=null;
-
-function ocrProgress(message){
-  if(!message) return;
-  const pct=Number.isFinite(message.progress) ? Math.round(message.progress*100) : 0;
-  if(message.status==='recognizing text'){
-    $('#ocrStatusText').textContent=`Reading scores… ${pct}%`;
-    $('#scanBarFill').style.width=`${Math.max(8,pct)}%`;
-  }else if(message.status){
-    $('#ocrStatusText').textContent='Preparing OCR…';
-    $('#scanBarFill').style.width='8%';
-  }
-}
-
-async function getOcrWorker(){
-  if(ocrWorker) return ocrWorker;
-  if(!window.Tesseract) throw new Error('OCR library could not be loaded. Check the internet connection and try again.');
-  ocrWorker=await Tesseract.createWorker('eng', 1, {logger:ocrProgress});
-  await ocrWorker.setParameters({
-    tessedit_pageseg_mode:'11',
-    tessedit_char_whitelist:'R0123456789 '
-  });
-  return ocrWorker;
-}
-
-async function fileToImage(file){
-  return await new Promise((resolve,reject)=>{
-    const img=new Image();
-    const url=URL.createObjectURL(file);
-    img.onload=()=>{ URL.revokeObjectURL(url); resolve(img); };
-    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('Could not open the photo.')); };
-    img.src=url;
-  });
-}
-
-async function makeScoreCrop(file){
-  const img=await fileToImage(file);
-  // The round list sits on the left side of a DARTSLIVE result screen.
-  // Keep a generous left area so both portrait and landscape photos work.
-  const sx=0;
-  const sy=Math.round(img.naturalHeight*0.05);
-  const sw=Math.round(img.naturalWidth*0.58);
-  const sh=Math.round(img.naturalHeight*0.90);
-  const scale=Math.min(2.2, 1900/sw);
-  const canvas=document.createElement('canvas');
-  canvas.width=Math.max(1,Math.round(sw*scale));
-  canvas.height=Math.max(1,Math.round(sh*scale));
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
-
-  // Grayscale + contrast helps with the white/orange digits on the dark cabinet screen.
-  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const d=imageData.data;
-  for(let i=0;i<d.length;i+=4){
-    const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];
-    const c=Math.max(0,Math.min(255,(g-128)*1.45+128));
-    d[i]=d[i+1]=d[i+2]=c;
-  }
-  ctx.putImageData(imageData,0,0);
-  return canvas;
-}
-
-function parseRoundScores(text){
-  const cleaned=String(text||'')
-    .toUpperCase()
-    .replace(/[|I]/g,'1')
-    .replace(/[^R0-9\n\r ]+/g,' ');
-  const found=new Map();
-
-  // Preferred: anchored R1 ... R8 rows.
-  const anchored=/R\s*([1-8])\s+([0-9]{1,3})/g;
-  let m;
-  while((m=anchored.exec(cleaned))){
-    const round=Number(m[1]), score=Number(m[2]);
-    if(score>=0 && score<=180) found.set(round,score);
-  }
-
-  // Relaxed fallback for OCR that drops the R but keeps "1 64", "2 104", etc.
-  if(found.size<8){
-    for(const line of cleaned.split(/\r?\n/)){
-      const nums=(line.match(/\d{1,4}/g)||[]).map(Number);
-      for(let i=0;i<nums.length-1;i++){
-        const round=nums[i], score=nums[i+1];
-        if(round>=1 && round<=8 && score>=0 && score<=180 && !found.has(round)){
-          found.set(round,score);
-          break;
-        }
-      }
-    }
-  }
-  return Array.from({length:8},(_,i)=>found.get(i+1) ?? null);
-}
-
-function showOcrScores(scores){
-  $('#roundScorePanel').classList.add('show');
-  scores.forEach((score,i)=>{
-    const input=$(`#ocrR${i+1}`);
-    input.value=score ?? '';
-    input.classList.toggle('review',score===null);
-  });
-  updateOcrRoundTotal();
-}
-
-async function scanCountUpPhoto(file){
-  const status=$('#ocrStatus');
-  status.className='scanStatus show';
-  $('#ocrStatusText').textContent='Preparing OCR…';
-  $('#scanBarFill').style.width='8%';
-  $('#roundScorePanel').classList.remove('show');
-
-  try{
-    const canvas=await makeScoreCrop(file);
-    const worker=await getOcrWorker();
-    const result=await worker.recognize(canvas);
-    const scores=parseRoundScores(result?.data?.text||'');
-    const count=scores.filter(v=>v!==null).length;
-    showOcrScores(scores);
-    $('#scanBarFill').style.width='100%';
-
-    if(count===8){
-      status.className='scanStatus show good';
-      $('#ocrStatusText').textContent='8/8 rounds read. Check the scores, then record the game.';
-      haptic(70);
-    }else{
-      status.className='scanStatus show warn';
-      $('#ocrStatusText').textContent=`${count}/8 rounds read. Fill or correct the highlighted fields.`;
-    }
-  }catch(err){
-    console.error(err);
-    status.className='scanStatus show warn';
-    $('#ocrStatusText').textContent=err?.message || 'Could not read the photo. Enter the score manually or try another photo.';
-    $('#scanBarFill').style.width='0%';
-    $('#roundScorePanel').classList.add('show');
-    for(let i=1;i<=8;i++) $(`#ocrR${i}`).classList.add('review');
-  }
-}
-
-$('#cuPhoto').onchange=async(e)=>{
-  const f=e.target.files?.[0];
-  if(!f) return;
-  haptic();
-  const preview=$('#photoPreview');
-  if(preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
-  const url=URL.createObjectURL(f);
-  preview.dataset.objectUrl=url;
-  preview.src=url;
-  preview.style.display='block';
-  await scanCountUpPhoto(f);
-};
 
 let cricket = [];
 let currentRound = 0;
@@ -883,16 +713,31 @@ function renderHistory(){
 
     if(x.type==='COUNT-UP'){
       detail=`${x.score} / BULL ${x.bull} / NO BULL R ${x.noBull?.length?x.noBull.join(','):'-'}`;
-      if(Array.isArray(x.roundScores) && x.roundScores.length===8) detail+=` / ROUNDS ${x.roundScores.join('-')}`;
     }else{
       detail=`TARGET ${x.target} / ${x.marks} MARKS / ${Number(x.mpr).toFixed(2)} MPR / ${x.rounds}R`;
     }
 
-    tr.innerHTML=`<td>${fmtDate(x.ts)}</td><td>${x.type}</td><td>${detail}</td><td><button type="button" class="editBtn" data-edit="${index}" title="Edit" aria-label="Edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></td>`;
+    tr.innerHTML=`<td>${fmtDate(x.ts)}</td><td>${x.type}</td><td>${detail}</td><td><div class="rowActions"><button type="button" class="editBtn" data-edit="${index}" title="Edit" aria-label="Edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button><button type="button" class="deleteRowBtn" data-delete="${index}" title="Delete record" aria-label="Delete record"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 15H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg></button></div></td>`;
     body.appendChild(tr);
   });
 
   $$('[data-edit]').forEach(btn=>btn.onclick=()=>openEditRecord(Number(btn.dataset.edit)));
+  $$('[data-delete]').forEach(btn=>btn.onclick=()=>deleteHistoryRecord(Number(btn.dataset.delete)));
+}
+
+function deleteHistoryRecord(index){
+  const logs=loadLogs();
+  const item=logs[index];
+  if(!item) return;
+  const label=item.type==='COUNT-UP'
+    ? `COUNT-UP ${item.score}`
+    : `CRICKET ${item.target} / ${Number(item.mpr).toFixed(2)} MPR`;
+  if(!confirm(`Delete this record?\n${label}`)) return;
+  haptic();
+  logs.splice(index,1);
+  saveLogs(logs);
+  renderHistory();
+  toast('Record deleted.');
 }
 
 let editingIndex=null;
@@ -906,16 +751,13 @@ function closeEditRecord(){
 
 function renderEditCountUp(log){
   editNoBull=[...(log.noBull||[])];
-  const rounds=Array.isArray(log.roundScores) && log.roundScores.length===8 ? log.roundScores : Array(8).fill('');
   $('#editFields').innerHTML=`
     <div class="grid">
       <div><label>SCORE</label><input id="editScore" type="number" min="0" value="${Number(log.score)||0}"></div>
       <div><label>BULLS</label><input id="editBull" type="number" min="0" max="24" value="${Number(log.bull)||0}"></div>
     </div>
     <label style="margin-top:14px">NO BULL ROUNDS</label>
-    <div class="editRounds" id="editNoBullRounds"></div>
-    <label style="margin-top:14px">ROUND SCORES (OPTIONAL)</label>
-    <div class="roundScoreGrid" id="editRoundScores"></div>`;
+    <div class="editRounds" id="editNoBullRounds"></div>`;
 
   for(let i=1;i<=8;i++){
     const btn=document.createElement('button');
@@ -928,17 +770,7 @@ function renderEditCountUp(log){
       btn.classList.toggle('active');
     };
     $('#editNoBullRounds').appendChild(btn);
-
-    const cell=document.createElement('div');
-    cell.className='roundScoreCell';
-    cell.innerHTML=`<label>R${i}</label><input class="editRoundScore" type="number" min="0" max="180" inputmode="numeric" value="${rounds[i-1]??''}">`;
-    $('#editRoundScores').appendChild(cell);
   }
-
-  $$('.editRoundScore').forEach(input=>input.addEventListener('input',()=>{
-    const vals=$$('.editRoundScore').map(x=>x.value===''?null:Number(x.value));
-    if(vals.every(v=>Number.isFinite(v) && v>=0 && v<=180)) $('#editScore').value=vals.reduce((a,b)=>a+b,0);
-  }));
 }
 
 function renderEditCricket(log){
@@ -991,9 +823,6 @@ $('#saveEdit').onclick=()=>{
     old.score=score;
     old.bull=bull;
     old.noBull=[...editNoBull].sort((a,b)=>a-b);
-    const vals=$$('.editRoundScore').map(x=>x.value===''?null:Number(x.value));
-    if(vals.every(v=>Number.isFinite(v) && v>=0 && v<=180)) old.roundScores=vals;
-    else delete old.roundScores;
   }else{
     const rounds=Number($('#editRounds').value);
     const marks=Number($('#editMarks').value);
@@ -1031,7 +860,7 @@ $('#exportCsv').onclick=()=>{
 
   loadLogs().forEach(x=>{
     const detail=x.type==='COUNT-UP'
-      ? `${x.score} / BULL ${x.bull} / NO BULL R ${(x.noBull||[]).join(',')}${Array.isArray(x.roundScores)&&x.roundScores.length===8?` / ROUNDS ${x.roundScores.join('-')}`:''}`
+      ? `${x.score} / BULL ${x.bull} / NO BULL R ${(x.noBull||[]).join(',')}`
       : `TARGET ${x.target} / ${x.marks} MARKS / ${Number(x.mpr).toFixed(2)} MPR / ${x.rounds}R`;
 
     rows.push([fmtDate(x.ts),x.type,detail]);
@@ -1047,6 +876,18 @@ $('#exportCsv').onclick=()=>{
   URL.revokeObjectURL(a.href);
 };
 
+// Prefer landscape while the installed PWA is in use. The manifest is the
+// primary setting; Screen Orientation is a best-effort reinforcement.
+async function requestLandscape(){
+  try{
+    if(screen.orientation && typeof screen.orientation.lock==='function'){
+      await screen.orientation.lock('landscape');
+    }
+  }catch{
+    // Some browsers allow orientation locking only for installed/fullscreen PWAs.
+  }
+}
+
 // Keep the screen awake while the app is being used (when supported).
 let wakeLock = null;
 async function requestWakeLock(){
@@ -1060,12 +901,19 @@ async function requestWakeLock(){
 }
 
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible') requestWakeLock();
+  if(document.visibilityState==='visible'){
+    requestWakeLock();
+    requestLandscape();
+  }
 });
-document.addEventListener('pointerdown',requestWakeLock,{passive:true});
+document.addEventListener('pointerdown',()=>{
+  requestWakeLock();
+  requestLandscape();
+},{passive:true});
 
 newCricketSession();
 requestWakeLock();
+requestLandscape();
 
 // Keep PWA installation/update support active for new and existing users.
 if('serviceWorker' in navigator){
